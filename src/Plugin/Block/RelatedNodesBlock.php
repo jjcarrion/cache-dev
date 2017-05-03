@@ -5,6 +5,7 @@ namespace Drupal\cache_dev\Plugin\Block;
 use Drupal\Core\Block\BlockBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
+use Drupal\node\Entity\Node;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\Core\Routing\CurrentRouteMatch;
 use Drupal\Core\Entity\EntityTypeManager;
@@ -149,32 +150,40 @@ class RelatedNodesBlock extends BlockBase implements ContainerFactoryPluginInter
       return $build;
     }
 
-    $build = [];
+    $build = [
+      '#lazy_builder' => [
+        '\Drupal\cache_dev\Plugin\Block\RelatedNodesBlock::lazy_builder',
+        [],
+      ],
+      '#create_placeholder' => TRUE,
+    ];
 
+    return $build;
+  }
+
+  /**
+   * #lazy_builder callback.
+   */
+  static public function lazy_builder() {
+    // Simulate that we have a very "expensive" call to show how big pipe works.
+    sleep(2);
+    $node = \Drupal::routeMatch()->getParameter('node');
     $taxonomy_from_current_node = $node->field_tags->entity->getName();
-    $related_node_ids = $this->getRelatedNodes($taxonomy_from_current_node);
 
-    $related_nodes = $this->entityTypeManager->getStorage('node')->loadMultiple($related_node_ids);
+    $query = \Drupal::entityQuery('node');
+    $query->condition('field_tags.entity.name', $taxonomy_from_current_node, '=');
+    $query->range(0, 2);
+    $related_node_ids = $query->execute();
 
+    $related_nodes = Node::loadMultiple($related_node_ids);
+    $build = [];
     foreach ($related_nodes as $key => $related_node) {
       // Render as view modes.
-      $build[$key] = $this->entityTypeManager
+      $build[$key] = \Drupal::entityTypeManager()
         ->getViewBuilder('node')
         ->view($related_node, 'teaser');
       $build[$key]['#cache']['contexts'][] = 'url';
     }
-    //    $user = User::load($this->current_user->id());
-    //    $this->renderer->addCacheableDependency($build['user'], $user);
     return $build;
   }
-
-  private function getRelatedNodes($taxonomy_from_current_node) {
-    $query = $this->entityQuery->get('node');
-    $query->condition('field_tags.entity.name', $taxonomy_from_current_node, '=');
-    $query->range(0, $this->configuration['number_of_related_nodes']);
-    $ids = $query->execute();
-    return $ids;
-  }
-
-
 }
