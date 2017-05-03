@@ -23,6 +23,12 @@ class SimpleBlock extends BlockBase {
       '#type' => 'html_tag',
       '#tag' => 'p',
       '#value' => 'Hello ' . \Drupal::currentUser()->getDisplayName(),
+      '#cache' => [
+        'keys' => ['summer_user'],
+        'contexts' => [
+          'user',
+        ],
+      ],
     ];
 
     return $build;

@@ -135,31 +135,36 @@ class RelatedNodesBlock extends BlockBase implements ContainerFactoryPluginInter
     // Without dependency injection:
     // $node = \Drupal::routeMatch()->getParameter('node');
     if (!$node) {
-      return [];
+      $build['no_articles'] = [
+        '#type' => 'html_tag',
+        '#tag' => 'p',
+        '#value' => 'There are no related articles.',
+        '#cache' => [
+          'keys' => ['my_custom_cache'],
+          'contexts' => [
+            'url.path',
+          ],
+        ],
+      ];
+      return $build;
     }
 
     $build = [];
-    $build['user'] = [
-      '#type' => 'html_tag',
-      '#tag' => 'p',
-      '#value' => 'Hello ' . $this->currentUser->getDisplayName(),
-    ];
 
     $taxonomy_from_current_node = $node->field_tags->entity->getName();
     $related_node_ids = $this->getRelatedNodes($taxonomy_from_current_node);
 
     $related_nodes = $this->entityTypeManager->getStorage('node')->loadMultiple($related_node_ids);
 
-    $nodes = [];
-    foreach ($related_nodes as $related_node) {
+    foreach ($related_nodes as $key => $related_node) {
       // Render as view modes.
-      $nodes[] = [
-        $this->entityTypeManager
-          ->getViewBuilder('node')
-          ->view($related_node, 'teaser'),
-      ];
+      $build[$key] = $this->entityTypeManager
+        ->getViewBuilder('node')
+        ->view($related_node, 'teaser');
+      $build[$key]['#cache']['contexts'][] = 'url';
     }
-    $build['related_products'] = $nodes;
+    //    $user = User::load($this->current_user->id());
+    //    $this->renderer->addCacheableDependency($build['user'], $user);
     return $build;
   }
 
