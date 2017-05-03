@@ -139,11 +139,6 @@ class RelatedNodesBlock extends BlockBase implements ContainerFactoryPluginInter
     }
 
     $build = [];
-    $build['user'] = [
-      '#type' => 'html_tag',
-      '#tag' => 'p',
-      '#value' => 'Hello ' . $this->currentUser->getDisplayName(),
-    ];
 
     $taxonomy_from_current_node = $node->field_tags->entity->getName();
     $related_node_ids = $this->getRelatedNodes($taxonomy_from_current_node);
