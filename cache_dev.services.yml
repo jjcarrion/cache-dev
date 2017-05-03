@@ -1,0 +1,7 @@
+services:
+  cache_context.host:
+    class: Drupal\cache_dev\CacheContext\HostContext
+    arguments: []
+    tags:
+      - { name: cache.context }
+

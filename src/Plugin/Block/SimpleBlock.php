@@ -18,6 +18,7 @@ class SimpleBlock extends BlockBase {
    * {@inheritdoc}
    */
   public function build() {
+    sleep(2);
     $build = [];
     $build['user'] = [
       '#type' => 'html_tag',
@@ -27,6 +28,7 @@ class SimpleBlock extends BlockBase {
         'keys' => ['summer_user'],
         'contexts' => [
           'user',
+          'host',
         ],
       ],
     ];
