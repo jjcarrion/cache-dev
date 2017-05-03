@@ -131,10 +131,45 @@ class RelatedNodesBlock extends BlockBase implements ContainerFactoryPluginInter
    * {@inheritdoc}
    */
   public function build() {
-    $build = [];
-    $build['related_nodes_block_number_of_related_nodes']['#markup'] = '<p>' . $this->configuration['number_of_related_nodes'] . '</p>';
+    $node = $this->currentRouteMatch->getParameter('node');
+    // Without dependency injection:
+    // $node = \Drupal::routeMatch()->getParameter('node');
+    if (!$node) {
+      return [];
+    }
 
+    $build = [];
+    $build['user'] = [
+      '#type' => 'html_tag',
+      '#tag' => 'p',
+      '#value' => 'Hello ' . $this->currentUser->getDisplayName(),
+    ];
+
+    $taxonomy_from_current_node = $node->field_tags->entity->getName();
+    $related_node_ids = $this->getRelatedNodes($taxonomy_from_current_node);
+
+    $related_nodes = $this->entityTypeManager->getStorage('node')->loadMultiple($related_node_ids);
+
+    $nodes = [];
+    foreach ($related_nodes as $related_node) {
+      // Render as view modes.
+      $nodes[] = [
+        $this->entityTypeManager
+          ->getViewBuilder('node')
+          ->view($related_node, 'teaser'),
+      ];
+    }
+    $build['related_products'] = $nodes;
     return $build;
   }
+
+  private function getRelatedNodes($taxonomy_from_current_node) {
+    $query = $this->entityQuery->get('node');
+    $query->condition('field_tags.entity.name', $taxonomy_from_current_node, '=');
+    $query->range(0, $this->configuration['number_of_related_nodes']);
+    $ids = $query->execute();
+    return $ids;
+  }
+
 
 }
