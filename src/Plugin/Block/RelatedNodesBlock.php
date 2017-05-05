@@ -67,10 +67,10 @@ class RelatedNodesBlock extends BlockBase implements ContainerFactoryPluginInter
         $plugin_id,
         $plugin_definition,
         CurrentRouteMatch $current_route_match, 
-	EntityTypeManager $entity_type_manager, 
-	QueryFactory $entity_query, 
-	Renderer $renderer, 
-	AccountProxy $current_user
+        EntityTypeManager $entity_type_manager,
+        QueryFactory $entity_query,
+        Renderer $renderer,
+        AccountProxy $current_user
   ) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
     $this->currentRouteMatch = $current_route_match;
